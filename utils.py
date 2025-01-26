@@ -1,4 +1,4 @@
-import os, psutil
+import os
 import hashlib
 
 # Check path validity for files 	O(1)

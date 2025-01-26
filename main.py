@@ -1,9 +1,9 @@
-# Licensed under GNU GPL2
-# Author: Somit Gond
-
 from scan_files import *
 from utils import *
 from db_ops import *
+from watchdog.observers import Observer
+from real_time_file_scanning import File_Handler
+import time, os
 
 # # Activating DB initialization
 # from db_ops import db
@@ -14,7 +14,8 @@ while(True):
 1: Scan a file
 2: Scan a directory (recursively for all sub-directories)
 3: Add a SHA-256 signature to the database
-4: Exit
+4: Monitor and scan new files 
+5: Exit
 
 Your choice is: ''')
     print("\n")
@@ -49,6 +50,27 @@ Your choice is: ''')
         else:
             print("Invalid SHA-256 Signature!")
     elif(op == '4'):
+        target_path = input("Enter the path of the directory: ")
+        if(check_path_directory(target_path)):
+            absolute_path = os.path.abspath(target_path)
+            print("\nWAITING FOR NEW FILES IN ( " + absolute_path + " )")
+            print("-----------------------------------------------------------------------")
+            observer = Observer()
+            event_handler = File_Handler()
+            observer.schedule(event_handler, path=absolute_path, recursive=True)
+            observer.start() # For each file discovered: O(X * M * V) X is the number of / in the path M is the number of processes iterated V is the number of blocks in the hashing funtion
+
+            try:
+                while(True):
+                    time.sleep(1)
+            except KeyboardInterrupt:
+                observer.stop()
+
+            observer.join()
+        else:
+            print("This Path Is NOT A Valid Directory Path!")
+
+    elif(op == '5'):
         break
     else:
         print("Invalid operation!")
